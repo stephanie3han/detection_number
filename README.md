@@ -23,6 +23,6 @@ sh ./train.sh
 # predict
 
 ```
-sh ./predict.sh
+sh ./predict.sh /path/to/images
 ```
 
