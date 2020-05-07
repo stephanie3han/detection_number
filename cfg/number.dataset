@@ -1,8 +1,8 @@
-classes=4
+classes=8
 train  = data/number/number.train.list
 valid  = data/number/number.valid.list
 test  = data/number/number.test.list
 backup = ./backup/
 labels = data/number/number.labels.list
 names  = data/number/number.names.list
-top = 4
+top = 8
