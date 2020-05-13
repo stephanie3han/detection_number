@@ -115,7 +115,7 @@ typedef struct layer layer;
 struct layer{
     LAYER_TYPE type;
     ACTIVATION activation;
-    COST_TYPE cost_type;
+    COST_TYPE cost_type;  //损失类型
     void (*forward)   (struct layer, struct network);
     void (*backward)  (struct layer, struct network);
     void (*update)    (struct layer, update_args);
@@ -198,10 +198,10 @@ struct layer{
 
     int onlyforward;
     int stopbackward;
-    int dontload;
+    int dontload;  //是否载入该层权重
     int dontsave;
     int dontloadscales;
-    int numload;
+    int numload;  //载入的卷积个数
 
     float temperature;
     float probability;
@@ -428,15 +428,15 @@ typedef enum {
 } learning_rate_policy;
 
 typedef struct network{
-    int n;
-    int batch;
-    size_t *seen;
+    int n;  //层数
+    int batch;  //批大小
+    size_t *seen;  //计数用途
     int *t;
-    float epoch;
-    int subdivisions;
+    float epoch;  //迭代次数
+    int subdivisions;//batch分割次数
     layer *layers;
     float *output;
-    learning_rate_policy policy;
+    learning_rate_policy policy;  //学习策略
 
     float learning_rate;
     float momentum;
@@ -733,6 +733,10 @@ data load_all_cifar10();
 box_label *read_boxes(char *filename, int *n);
 box float_to_box(float *f, int stride);
 void draw_detections(image im, detection *dets, int num, float thresh, char **names, image **alphabet, int classes);
+
+void draw_detections_person(char *imagename, char *odir, image im, detection *dets, int num, float thresh, char **names, image **alphabet, int classes);
+  /////////////////////////0
+
 
 matrix network_predict_data(network *net, data test);
 image **load_alphabet();

@@ -1464,3 +1464,152 @@ void free_image(image m)
         free(m.data);
     }
 }
+
+
+
+////////////////////////0
+void draw_detections_person(char *imagename, char *odir, image im, detection *dets, int num, float thresh, char **names, image **alphabet, int classes)
+{
+    int i,j;
+    int count=0;
+    char *output=0;
+    char outdir[512];
+    if(!odir)
+    {
+        // 单张 
+        output = imagename;
+        //xxx.jpg to xxx.txt
+        int k=0;
+        for (k = strlen(imagename)-1; k>=0; k--)
+        {
+            if((imagename[k]!='j')&&(imagename[k]!='p')&&(imagename[k]!='g')&&(imagename[k]!='.'))
+            {         
+            break;
+            }    
+            else
+            {          
+            output[k] = '\0';
+            }
+        }
+        output = strcat(imagename, ".txt");
+     }
+     else
+     {  
+    //多张
+        //output = strcat(odir,imagename);
+    char labelsdir[512];
+        sprintf(labelsdir,"%s%s", odir, "labels/");
+    sprintf(outdir,"%s%s", labelsdir, imagename);
+        int k=0;
+        for (k = strlen(outdir)-1; k>=0; k--)
+        {
+            if((outdir[k]!='j')&&(outdir[k]!='p')&&(outdir[k]!='g')&&(outdir[k]!='.'))
+            {         
+            break;
+            }    
+            else
+            {          
+            outdir[k] = '\0';
+            }
+        }
+    output = strcat(outdir, ".txt");
+    }
+    //new xxx.txt
+    FILE *fp;
+    if ( (fp = fopen(output, "w+")) == NULL )
+    {
+        printf("wrong:\n");
+    }
+
+    for(i = 0; i < num; ++i)
+    {
+        char labelstr[4096] = {0};
+        int class = -1;    //class id
+    
+        for(j=0; j<classes; ++j)
+        {    
+        //person filter
+            if(strcmp(names[j],"person") != 0)
+            {
+                continue;
+            }
+            //thresh filter
+            if(dets[i].prob[j]>thresh)
+            {
+                strcat(labelstr, names[j]);
+                class = j;  
+        ++count;
+        printf("%s %d:%0.f%%\n",names[j],count,dets[i].prob[j]*100);
+            }
+            else
+            {
+                strcat(labelstr, ", ");
+                strcat(labelstr, names[j]);
+            }
+            
+        }
+        
+        if(class >= 0)
+        {   
+            //boxes width
+            int width = im.h * .006;
+        /*
+            if(0){
+                width = pow(prob, 1./2.)*10+1;
+                alphabet = 0;
+            }
+        */
+        //printf("%d %s: %.0f%%\n", i, names[class], prob*100);
+            //printf("%s: %.0f%%\n", names[class], prob*100);
+            int offset = class*123457 % classes;
+            float red = get_color(2,offset,classes);
+            float green = get_color(1,offset,classes);
+            float blue = get_color(0,offset,classes);
+            float rgb[3];
+
+            //width = prob*20+2;
+
+            rgb[0] = red;
+            rgb[1] = green;
+            rgb[2] = blue;
+            box b = dets[i].bbox;
+
+            int left  = (b.x-b.w/2.)*im.w;
+            int right = (b.x+b.w/2.)*im.w;
+            int top   = (b.y-b.h/2.)*im.h;
+            int bot   = (b.y+b.h/2.)*im.h;
+            //printf("box_axis:%f,%f,%f,%f.\n",b.x,b.y,b.w,b.h);
+            //printf("img_box:%d,%d,%d,%d.\n",left,top,right,bot);
+
+            if(left < 0) left = 0;
+            if(right > im.w-1) right = im.w-1;
+            if(top < 0) top = 0;
+            if(bot > im.h-1) bot = im.h-1;
+
+            //写入txt坐标框  
+            printf("saved box in:%s \n",output);
+            fprintf(fp, "%d %d %d %d\n", left, top, right, bot);
+            draw_box_width(im, left, top, right, bot, width, red, green, blue);
+            if (alphabet)
+            {
+                image label = get_label(alphabet, labelstr, (im.h*.03)/10);
+                draw_label(im, top + width, left, label, rgb);
+                free_image(label);
+            }
+            if (dets[i].mask)
+            {
+                image mask = float_to_image(14, 14, 1, dets[i].mask);
+                image resized_mask = resize_image(mask, b.w*im.w, b.h*im.h);
+                image tmask = threshold_image(resized_mask, .5);
+                embed_image(tmask, im, left, top);
+                free_image(mask);
+                free_image(resized_mask);
+                free_image(tmask);
+            }
+        }
+    }
+    //关闭txt文件
+    fclose(fp);
+}
+
+

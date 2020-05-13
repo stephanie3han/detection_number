@@ -1042,7 +1042,7 @@ data load_data_detection(int n, char **paths, int m, int w, int h, int boxes, in
 
     d.X.rows = n;
     d.X.vals = calloc(d.X.rows, sizeof(float*));
-    d.X.cols = h*w;//*3;
+    d.X.cols = h*w*3;
 
     d.y = make_matrix(n, 5*boxes);
     for(i = 0; i < n; ++i){
