@@ -4,13 +4,18 @@
 #include "cuda.h"
 #include <stdio.h>
 #include <math.h>
+#include <aa_cut_image.h>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
 
+#define P_W 0.0625
+#define P_H 0.125
+//#define SIZE 200
 int windows = 0;
+
 
 float colors[6][3] = { {1,0,1}, {0,0,1},{0,1,1},{0,1,0},{1,1,0},{1,0,0} };
 
@@ -1293,20 +1298,21 @@ void test_resize(char *filename)
 image load_image_stb(char *filename, int channels)
 {
     int w, h, c;
-    unsigned char *data = stbi_load(filename, &w, &h, &c, channels);
+    unsigned char *data = stbi_load(filename, &w, &h, &c, channels);  //返回RGBRGBRGB？？？ 
     if (!data) {
         fprintf(stderr, "Cannot load image \"%s\"\nSTB Reason: %s\n", filename, stbi_failure_reason());
         exit(0);
     }
-    if(channels) c = channels;
+    if(channels) 
+        c = channels;
     int i,j,k;
-    image im = make_image(w, h, c);
+    image im = make_image(w, h, c);//给image.data 开辟空间，大小为为 w*h*c
     for(k = 0; k < c; ++k){
         for(j = 0; j < h; ++j){
             for(i = 0; i < w; ++i){
-                int dst_index = i + w*j + w*h*k;
-                int src_index = k + c*i + c*w*j;
-                im.data[dst_index] = (float)data[src_index]/255.;
+                int dst_index = i + w*j + w*h*k;  //像素索引= 当前列数i + 行像素数w * 当前行数j + 行像素数w * 列像素数h * 当前通道数k  
+                int src_index = k + c*i + c*w*j;  //当前通道数k + 通道总数c * 当前列数i + 通道总数c * 行像素数w * 当前行数j  
+                im.data[dst_index] = (float)data[src_index]/255.;  //对图像进行normalization
             }
         }
     }
@@ -1319,15 +1325,22 @@ image load_image(char *filename, int w, int h, int c)
 #ifdef OPENCV
     image out = load_image_cv(filename, c);
 #else
-    image out = load_image_stb(filename, c);
+    image out = load_image_stb(filename, c);   //////
 #endif
+    //printf("Avant  cut_image\n");
+    ///先cut再resize  // cut_image()
+    image cut_out = cut_image(out,P_W,P_H);  /////////////////////////
+        
+      //  printf("w = %d, h= %d, c = %d\n", out.w,out.h,out.c);
 
-    if((h && w) && (h != out.h || w != out.w)){
-        image resized = resize_image(out, w, h);
+    if((h && w) && (h != cut_out.h || w != cut_out.w)){
+      //  printf("passer resize_image\n");
+        image resized = resize_image(cut_out, w, h);  //  先load 再resize
         free_image(out);
-        out = resized;
+        cut_out = resized;
     }
-    return out;
+    //printf("after cut image\n");
+    return cut_out;
 }
 
 image load_image_color(char *filename, int w, int h)
