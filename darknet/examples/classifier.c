@@ -986,9 +986,10 @@ void gun_classifier(char *datacfg, char *cfgfile, char *weightfile, int cam_inde
 void demo_classifier(char *datacfg, char *cfgfile, char *weightfile, int cam_index, const char *filename)
 {
 #ifdef OPENCV
+    
     char *base = basecfg(cfgfile);
-    image **alphabet = load_alphabet();
-    printf("Classifier Demo\n");
+    image **alphabet = load_alphabet();  ///////////////
+    //printf("Classifier Demo\n");
     network *net = load_network(cfgfile, weightfile, 0);
     set_batch_network(net, 1);
     list *options = read_data_cfg(datacfg);
