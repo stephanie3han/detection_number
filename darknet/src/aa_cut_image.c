@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <math.h>
 
-//传入图像和w、h需要裁剪的比例   1/6        1/3
+//传入图像和w、h需要裁剪的比例         
 // im.w * p_w, im.h * p_h, im.c
 
 image cut_image(image im, float p_w, float p_h){

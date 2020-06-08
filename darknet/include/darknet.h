@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <pthread.h>
+#include <stdbool.h>
 
 #ifdef GPU
     #define BLOCK 512
@@ -802,6 +803,10 @@ int *read_intlist(char *s, int *n, int d);
 size_t rand_size_t();
 float rand_normal();
 float rand_uniform(float min, float max);
+
+///////添加新建函数
+image cut_image(image im, float p_w, float p_h);
+bool find_color(image im);
 
 #ifdef __cplusplus
 }

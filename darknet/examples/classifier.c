@@ -582,10 +582,15 @@ void predict_classifier(char *datacfg, char *cfgfile, char *weightfile, char *fi
             printf("Enter Image Path: ");
             fflush(stdout);
             input = fgets(input, 256, stdin);
-            if(!input) return;
+            if(!input) return;   ///用来结束函数执行，不再执行后面的内容
             strtok(input, "\n");
         }
-        image im = load_image_color(input, 0, 0);   /////////////////////
+        image im = load_image_color(input, 0, 0);   ////////。。。。。。。。。。。。。。。。。。。。////此处为修改入口
+
+        image im_cut = cut_image(im,1.0/3.0,1.0/3.0);
+        //printf("w = %d, h = %d\n",im_cut.w,im_cut.h);
+        if(find_color(im_cut)){           //////////////////////
+
         image r = letterbox_image(im, net->w, net->h);
         //image r = resize_min(im, 320);
         //printf("%d %d\n", r.w, r.h);
@@ -604,9 +609,12 @@ void predict_classifier(char *datacfg, char *cfgfile, char *weightfile, char *fi
             //else printf("%s: %f\n",names[index], predictions[index]);
             printf("%5.2f%%: %s\n", predictions[index]*100, names[index]);
         }
+
         if(r.data != im.data) free_image(r);
         free_image(im);
+
         if (filename) break;
+         }else{printf("Not find color!\n");}
     }
 }
 
@@ -988,7 +996,7 @@ void demo_classifier(char *datacfg, char *cfgfile, char *weightfile, int cam_ind
 #ifdef OPENCV
     
     char *base = basecfg(cfgfile);
-    image **alphabet = load_alphabet();  ///////////////
+    image **alphabet= load_alphabet();  ///////////////
     //printf("Classifier Demo\n");
     network *net = load_network(cfgfile, weightfile, 0);
     set_batch_network(net, 1);
@@ -1018,7 +1026,10 @@ void demo_classifier(char *datacfg, char *cfgfile, char *weightfile, int cam_ind
 
         image in = get_image_from_stream(cap);
         //image in_s = resize_image(in, net->w, net->h);
-        image in_s = letterbox_image(in, net->w, net->h);
+        ////////。。。。。。。。。。。。。/////////////////此处开始修改
+        image in_cut1 = cut_image(in, 1.0/6.0,1.0/4.0);
+        if(find_color(in_cut1)){
+        image in_s = letterbox_image(in_cut1, net->w, net->h);
 
         float *predictions = network_predict(net, in_s.data);
         if(net->hierarchy) hierarchy_predictions(predictions, net->outputs, net->hierarchy, 1, 1);
@@ -1053,6 +1064,7 @@ void demo_classifier(char *datacfg, char *cfgfile, char *weightfile, int cam_ind
         timersub(&tval_after, &tval_before, &tval_result);
         float curr = 1000000.f/((long int)tval_result.tv_usec);
         fps = .9*fps + .1*curr;
+       }else{printf("Dont find color");}
     }
 #endif
 }

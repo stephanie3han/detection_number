@@ -5,14 +5,16 @@
 #include <stdio.h>
 #include <math.h>
 #include <aa_cut_image.h>
+#include <aa_find_color.h>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
 
-#define P_W 0.0625
-#define P_H 0.125
+#define P_W 0.25
+#define P_H 0.25
+#define P_FIND 0.5
 //#define SIZE 200
 int windows = 0;
 
@@ -234,7 +236,7 @@ image **load_alphabet()
         alphabets[j] = calloc(128, sizeof(image));
         for(i = 32; i < 127; ++i){
             char buff[256];
-            sprintf(buff, "data/labels/%d_%d.png", i, j);
+            //sprintf(buff, "data/labels/%d_%d.png", i, j);
             alphabets[j][i] = load_image_color(buff, 0, 0);
         }
     }
@@ -1329,7 +1331,7 @@ image load_image(char *filename, int w, int h, int c)
 #endif
     //printf("Avant  cut_image\n");
     ///先cut再resize  // cut_image()
-    image cut_out = cut_image(out,P_W,P_H);  /////////////////////////
+    image cut_out = cut_image(out,P_W,P_H);  /////////////////////////在这里cut_image
         
       //  printf("w = %d, h= %d, c = %d\n", out.w,out.h,out.c);
 
